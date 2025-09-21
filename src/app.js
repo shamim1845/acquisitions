@@ -22,11 +22,32 @@ app.use(
   })
 );
 
+// Root endpoint
 app.get('/', (req, res) => {
   logger.info('Root endpoint accessed');
-  // logger.error('This is a sample error log');
 
   res.status(200).json({ message: 'Welcome to acquisitions!' });
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  logger.info('Health check endpoint accessed');
+
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+// API status endpoint
+app.get('/api', (req, res) => {
+  logger.info('API status endpoint accessed');
+
+  res.status(200).json({ message: 'Acquisitions API is running!' });
+});
+
+// API Routes
+app.use('/api/auth', (await import('#routes/auth.routes.js')).default);
 
 export default app;
