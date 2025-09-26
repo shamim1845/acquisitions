@@ -64,3 +64,19 @@ export const signin = (req, res) => {
 export const signout = (req, res) => {
   res.status(200).json({ message: 'Signout successful!' });
 };
+
+export const verifyToken = (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwttoken.verify(token);
+    res.status(200).json({ message: 'Token is valid', decoded });
+  } catch (error) {
+    logger.warn('Token verification failed:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
