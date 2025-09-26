@@ -2,7 +2,7 @@ import logger from '#config/logger.js';
 import { createUser, hashPassword } from '#services/auth.service.js';
 import { formatValidationError } from '#utils/format.js';
 import { jwttoken } from '#utils/jwt.js';
-import { signupSchema } from '#validations/auth.validation.js';
+import { signinSchema, signupSchema } from '#validations/auth.validation.js';
 
 export const signup = async (req, res, next) => {
   try {
@@ -12,7 +12,7 @@ export const signup = async (req, res, next) => {
     // Handle validation errors
     if (!validationResult.success) {
       const errorMessages = formatValidationError(validationResult.error);
-      logger.warn('Signup validation failed:', errorMessages);
+      logger.warn(`Signup validation failed: ${errorMessages}`);
 
       return res
         .status(400)
@@ -51,14 +51,44 @@ export const signup = async (req, res, next) => {
   }
 };
 
-export const signin = (req, res) => {
-  const token = jwttoken.sign({
-    id: 1,
-    name: 'Md Shamim Hossain',
-    email: 'samimraj1845@gmail.com',
-  }); // Example payload
+export const signin = (req, res, next) => {
+  try {
+    // Schema Validation
+    const validationResult = signinSchema.safeParse(req.body);
 
-  res.status(200).json({ message: 'Signin successful!', token });
+    // Handle validation errors
+    if (!validationResult.success) {
+      const errorMessages = formatValidationError(validationResult.error);
+      logger.warn(`Signin validation failed: ${errorMessages}`);
+
+      return res
+        .status(400)
+        .json({ error: 'Validation failed', details: errorMessages });
+    }
+
+    // Extract validated data
+    const { email, password } = validationResult.data;
+
+    // Find user by email and verify password
+    const user = {
+      id: 1,
+      name: 'Md Shamim Hossain',
+      email,
+      password,
+    };
+
+    const token = jwttoken.sign({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    }); // Example payload
+
+    res.status(200).json({ message: 'Signin successful!', token });
+  } catch (error) {
+    logger.error('Signin error:', error);
+
+    next(error);
+  }
 };
 
 export const signout = (req, res) => {
