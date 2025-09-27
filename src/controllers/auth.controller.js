@@ -1,5 +1,6 @@
 import logger from '#config/logger.js';
-import { createUser, hashPassword } from '#services/auth.service.js';
+import { createUser } from '#services/auth.service.js';
+import { cookies } from '#utils/cookies.js';
 import { formatValidationError } from '#utils/format.js';
 import { jwttoken } from '#utils/jwt.js';
 import { signinSchema, signupSchema } from '#validations/auth.validation.js';
@@ -22,23 +23,29 @@ export const signup = async (req, res, next) => {
     // Extract validated data
     const { name, email, password, role } = validationResult.data;
 
-    // WIP: Auth service to handle user creation
-    const hashedPassword = await hashPassword(password);
-
+    // Auth service to handle user creation
     const user = await createUser({
       name,
       email,
-      password: hashedPassword,
+      password,
       role,
     });
 
-    console.log(user);
+    const token = jwttoken.sign({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    // Set cookies
+    cookies.set(res, 'token', token);
 
     // Success response
     logger.info(`User signed up successfully: ${email}`);
     res.status(201).json({
       message: 'Signup successful.',
       data: user,
+      token,
     });
   } catch (error) {
     logger.error('Signup error:', error);
