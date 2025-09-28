@@ -24,7 +24,9 @@ app.use(
   })
 );
 // Arcjet protection
-app.use(securityMiddleware);
+if(process.env.NODE_ENV === 'production') {
+  app.use(securityMiddleware);
+}
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -17,4 +17,4 @@ pids
 *.pid.lock
 .idea
 *.iml
-*.suo
+*.suo.neon_local/
