@@ -24,7 +24,7 @@ app.use(
   })
 );
 // Arcjet protection
-if(process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   app.use(securityMiddleware);
 }
 
@@ -55,5 +55,10 @@ app.get('/api', (req, res) => {
 
 // API Routes
 app.use('/api/auth', (await import('#routes/auth.routes.js')).default);
+
+// Catch all route
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found!' });
+});
 
 export default app;

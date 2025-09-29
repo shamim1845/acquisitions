@@ -6,11 +6,14 @@ FROM node:18-alpine AS base
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Enable Corepack and prepare pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files (including lockfile)
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy source code
 COPY . .
@@ -33,10 +36,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Development stage
 FROM base AS development
 USER root
-RUN npm ci && npm cache clean --force
+RUN pnpm install --frozen-lockfile
 USER nodejs
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]
 
 # Production stage
 FROM base AS production
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
